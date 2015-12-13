@@ -1,12 +1,15 @@
 language: ruby
 rvm:
-  - 1.9.3
-  - 2.0.0
-  - 2.1.5
-  - 2.2.2
-  - 2.2.3
+- 1.9.3
+- 2.0.0
+- 2.1.5
+- 2.2.2
+- 2.2.3
+notifications:
+  slack:
+    secure: NbFo5KxFajRvNkbUU+PyA+pj3BiUDBJo5JXbn0PzEkzSXZ5XO/EbWP/VE9I3V7XlTNyAtkUmy6bHM40qOKqjH/pybmtTGR0hD7DbE2qEVKU4o0+6eFM0Qu6d+ws/gnJFsoAorVQmCazzsCchCINVGGExVJ17sXrEIRNFVN/G2SX7HkirChE6kgkNX1+BhMV0eWhI1nAFpJE7x2wSVRo7VutgQ0ArOktR6PP1OlI3xWNq7WXRFYdlho4zZir/9dETwwioib0OanmMYyZpymnPmNp2gTjhtUaCGtZJzfcTYZ4Wqj19l/O/pAVsdnYeydJC9J9n2RDxxffbcfcJ66hVOLhVGehtQsAkV9LESlwm2PtUmo+iC9SnSarFV9725ilkfFYv07Ob0lz1byKprRjrvftB3jce6EMVKBMEkz7g83tEGtzEu8590mL2lhLhjfGn+3JA4Kty8O39qA1ptCdMEq/mVPiNaQjXIbJO5PNy36UutusT3KdScF6VfHnn1tURdRYttBF6dY9qIzCui0veQaxCAJbQxIC49Q80Dg9ZHtvi/mHJoVXC8oxEUpr8sjpJvbklfqexDpeuXTVq3yCOGF1Wb5VA2DQSS+aDVU3AxvnlUgurQZ7XVovHbq+d0C20V5ihPfjHJWL4T26LYM2hdaxBB2t6YJ+Nt8WRSugFKdU=
 before_install: gem install bundler -v 1.10.4
 script: bundle exec rspec
 branches:
   only:
-    - master
+  - master
