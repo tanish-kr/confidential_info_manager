@@ -34,6 +34,8 @@ module ConfidentialInfoManager
           secret_data = Marshal.dump(secret_data)
       end
 
+      @@encrypter.reset
+
       encrypted_data = ""
       encrypted_data << @@encrypter.update(secret_data)
       encrypted_data << @@encrypter.final
@@ -46,6 +48,8 @@ module ConfidentialInfoManager
     #   @note String/Fixnum/Bignum/Float/Array/Hash
     # @return [Object] decrypted data
     def decrypt(encrypted_data, type=String)
+      @@decrypter.reset
+
       decrypted_data = ""
       decrypted_data << @@decrypter.update(encrypted_data)
       decrypted_data << @@decrypter.final
@@ -58,6 +62,40 @@ module ConfidentialInfoManager
         decrypted_data = Marshal.load(decrypted_data)
       end
       decrypted_data
+    end
+
+    ##
+    # encrypt only value
+    # @param [Object] secret_data
+    #   @note Object is allowed an Hash or Array
+    # @return [Object] encrypted data
+    #   @note Array/Hash
+    def encrypt_only_value(secret_data)
+      case secret_data
+        when Hash
+          Hash[secret_data.map { |key, val| [key, encrypt(val)] }]
+        when Array
+          secret_data.map { |val| encrypt(val) }
+        else
+          encrypt(secret_data)
+      end
+    end
+
+    ##
+    # decrypt only value
+    # @param [Object] encrypted_data
+    #   @note Object is allowed an Hash or Array
+    # @return [Object] decrypted data
+    #   @note Array/Hash
+    def decrypt_only_value(encrypted_data)
+      case encrypted_data
+        when Hash
+          Hash[encrypted_data.map { |key, val| [key, decrypt(val)] }]
+        when Array
+          encrypted_data.map { |val| decrypt(val) }
+        else
+          decrypt(encrypted_data)
+      end
     end
 
 private
