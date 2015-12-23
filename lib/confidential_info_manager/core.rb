@@ -13,12 +13,21 @@ module ConfidentialInfoManager
     ##
     # constructor
     # @param [String] password
+    # @param [String] salt
     # @param [String] mode
-    # @see OpenSSL::Ciper.ciphers
-    def initialize(password, mode="AES-256-CBC")
+    # @see http://docs.ruby-lang.org/en/2.2.0/OpenSSL/Cipher.html
+    def initialize(password, salt, mode="AES-256-CBC")
       generate_encrypter(mode)
       generate_decrypter(mode)
-      set_key_and_iv(password)
+      set_key_and_iv(password, salt)
+    end
+
+    ##
+    # generate salt
+    # @param [Integer] length
+    # @return [String] salt
+    def self.generate_salt(length = RANDOM_BYTES)
+      OpenSSL::Random.random_bytes(length)
     end
 
     ##
@@ -34,9 +43,12 @@ module ConfidentialInfoManager
           secret_data = Marshal.dump(secret_data)
       end
 
+      @@encrypter.reset
+
       encrypted_data = ""
       encrypted_data << @@encrypter.update(secret_data)
       encrypted_data << @@encrypter.final
+      Base64.strict_encode64(encrypted_data)
     end
 
     ##
@@ -46,6 +58,9 @@ module ConfidentialInfoManager
     #   @note String/Fixnum/Bignum/Float/Array/Hash
     # @return [Object] decrypted data
     def decrypt(encrypted_data, type=String)
+      @@decrypter.reset
+
+      encrypted_data = Base64.strict_decode64(encrypted_data)
       decrypted_data = ""
       decrypted_data << @@decrypter.update(encrypted_data)
       decrypted_data << @@decrypter.final
@@ -60,13 +75,47 @@ module ConfidentialInfoManager
       decrypted_data
     end
 
+    ##
+    # encrypt only value
+    # @param [Object] secret_data
+    #   @note Object is allowed an Hash or Array
+    # @return [Object] encrypted data
+    #   @note Array/Hash
+    def encrypt_only_value(secret_data)
+      case secret_data
+        when Hash
+          Hash[secret_data.map { |key, val| [key, encrypt(val)] }]
+        when Array
+          secret_data.map { |val| encrypt(val) }
+        else
+          encrypt(secret_data)
+      end
+    end
+
+    ##
+    # decrypt only value
+    # @param [Object] encrypted_data
+    #   @note Object is allowed an Hash or Array
+    # @return [Object] decrypted data
+    #   @note Array/Hash
+    def decrypt_only_value(encrypted_data)
+      case encrypted_data
+        when Hash
+          Hash[encrypted_data.map { |key, val| [key, decrypt(val)] }]
+        when Array
+          encrypted_data.map { |val| decrypt(val) }
+        else
+          decrypt(encrypted_data)
+      end
+    end
+
 private
 
     ##
     # setting key and iv
     # @param [String] password
-    def set_key_and_iv(password)
-      salt = OpenSSL::Random.random_bytes(RANDOM_BYTES)
+    # @param [String] salt
+    def set_key_and_iv(password, salt)
       # Generated from the password and salt the key and IV in accordance with PKCS#5
       key_iv = OpenSSL::PKCS5.pbkdf2_hmac_sha1(
         password, salt, ITERATOR_COUNT,
