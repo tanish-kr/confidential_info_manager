@@ -4,8 +4,6 @@
 
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/confidential_info_manager`. To experiment with that code, run `bin/console` for an interactive prompt.
 
-TODO: Delete this and the text above, and describe your gem
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -24,18 +22,38 @@ Or install it yourself as:
 
 ## Usage
 
+Please the password and the salt used in the encrypter and decrypter passing the same thing at the time of instance generation
+
 ### Use as an object
 
 ```ruby
 require "confidential_info_manager"
 
 raw_data = "string"
+# salt is no problem even if arbitrarily created
+salt = ConfidentialInfoManager::Core.generate_salt
 
-manager = ConfidentialInfoManager::Core.new("password")
+manager = ConfidentialInfoManager::Core.new("password", salt)
 # encrypt
 encrypt_data = manager.encrypt(raw_data)
 # decrypt
 decrypt_data = manager.decrypt(encrypt_data, String)
+```
+
+### Save to YAML, load to YAML
+
+```ruby
+require "confidential_info_manager"
+
+password = "password"
+salt = ConfidentialInfoManager::Core.generate_salt
+file_path = "/tmp"
+secret_data = { API_KEY: "abcedefg", API_SECRET_KEY: "abcedfg" }
+
+confidential_info_manager = ConfidentialInfoManager::YAML.new(pass, salt)
+confidential_info_manager.save(secret_data, file_path)
+yaml_data = confidential_info_manager.load(file_path)
+
 ```
 
 ## Development
