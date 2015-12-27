@@ -28,6 +28,10 @@ describe ConfidentialInfoManager::YAML do
     let!(:salt) { "abcdefg" }
     let!(:pass) { "pass" }
 
+    after(:all) do
+      File.delete(File.join(File.dirname(File.expand_path(__FILE__)), "secret_data.yml"))
+    end
+
     it "saving the encrypted data in YAML format" do
       # secret_data = { API_KEY: "abcedefg", API_SECRET_KEY: "abcedfg"}
       # file_path = File.join(File.dirname(File.expand_path(__FILE__)), "secret_data.yml")
