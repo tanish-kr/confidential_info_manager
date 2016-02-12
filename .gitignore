@@ -10,3 +10,4 @@
 .ruby-version
 .rbenv-gemsets
 *.swp
+.DS_Store
