@@ -30,10 +30,8 @@ Please the password and the salt used in the encrypter and decrypter passing the
 require "confidential_info_manager"
 
 raw_data = "string"
-# salt is no problem even if arbitrarily created
-salt = ConfidentialInfoManager::Core.generate_salt
 
-manager = ConfidentialInfoManager::Core.new("password", salt)
+manager = ConfidentialInfoManager::Core.new("password")
 # encrypt
 encrypt_data = manager.encrypt(raw_data)
 # decrypt
@@ -46,14 +44,50 @@ decrypt_data = manager.decrypt(encrypt_data, String)
 require "confidential_info_manager"
 
 password = "password"
-salt = ConfidentialInfoManager::Core.generate_salt
 file_path = "/tmp"
 secret_data = { API_KEY: "abcedefg", API_SECRET_KEY: "abcedfg" }
 
-confidential_info_manager = ConfidentialInfoManager::YAML.new(pass, salt)
+confidential_info_manager = ConfidentialInfoManager::YAML.new(pass)
 confidential_info_manager.save(secret_data, file_path)
 yaml_data = confidential_info_manager.load(file_path)
 
+```
+
+## Command line exchange
+
+### Command encrypt
+
+```console
+$ echo <raw_data> | openssl enc -e -aes-256-cbc -base64 -pass pass:<password>
+```
+
+### Use library for decrypt
+
+```ruby
+require "confidential_info_manager"
+
+# Specify the algorithm used. Iterator is 1 fixed
+manager = ConfidentialInfoManager::Core.new("password", "AES-256-CBC", 1)
+manager.decrypt(cli_encrypt_str)
+```
+
+### Use library for encrypt
+
+```ruby
+require "confidential_info_manager"
+
+raw_data = "Hello, World"
+
+# Iterator is 1 fixed
+manager = ConfidentialInfoManager::Core.new("password", "AES-256-CBC", 1)
+manager.encrypt(raw_data)
+```
+
+### Command decrypt
+
+```console
+# Specify the algorithm used.
+$ echo <encrypted_data> | openssl enc -d -aes-256-cbc -base64 -pass pass:<password>
 ```
 
 ## Development
