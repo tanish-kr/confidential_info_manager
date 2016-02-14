@@ -7,6 +7,7 @@ require "base64"
 require "confidential_info_manager/version"
 require "confidential_info_manager/core"
 require "confidential_info_manager/yaml"
+require "confidential_info_manager/json"
 
 module ConfidentialInfoManager
 end
