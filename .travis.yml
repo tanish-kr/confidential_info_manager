@@ -13,3 +13,4 @@ script: bundle exec rspec
 branches:
   only:
   - master
+  - develop

@@ -9,6 +9,7 @@ module ConfidentialInfoManager
 
     RANDOM_BYTES = 8.freeze
     ITERATOR_COUNT = 2000.freeze
+    DEFAULT_ALGORITHM = "AES-256-CBC".freeze
 
     ##
     # constructor
@@ -16,18 +17,14 @@ module ConfidentialInfoManager
     # @param [String] salt
     # @param [String] mode
     # @see http://docs.ruby-lang.org/en/2.2.0/OpenSSL/Cipher.html
-    def initialize(password, salt, mode="AES-256-CBC")
-      generate_encrypter(mode)
-      generate_decrypter(mode)
-      set_key_and_iv(password, salt)
-    end
+    def initialize(password, mode = DEFAULT_ALGORITHM, iterator_cnt = ITERATOR_COUNT)
+      raise ArgmentError.new("Password is empty") if password.empty?
+      raise ArgmentError.new("Mode is empty") if mode.empty?
+      raise ArgmentError.new("You must specify an integer of 1 or more") if iterator_cnt <= 0
 
-    ##
-    # generate salt
-    # @param [Integer] length
-    # @return [String] salt
-    def self.generate_salt(length = RANDOM_BYTES)
-      OpenSSL::Random.random_bytes(length)
+      @iterator_cnt = iterator_cnt
+      @password = password
+      @mode = mode
     end
 
     ##
@@ -43,12 +40,14 @@ module ConfidentialInfoManager
           secret_data = Marshal.dump(secret_data)
       end
 
-      @@encrypter.reset
-
+      salt = OpenSSL::Random.random_bytes(RANDOM_BYTES)
+      encrypter = generate_cipher
+      encrypter.encrypt
+      encrypter.pkcs5_keyivgen(@password, salt, @iterator_cnt)
       encrypted_data = ""
-      encrypted_data << @@encrypter.update(secret_data)
-      encrypted_data << @@encrypter.final
-      Base64.strict_encode64(encrypted_data)
+      encrypted_data << encrypter.update(secret_data)
+      encrypted_data << encrypter.final
+      Base64.strict_encode64("Salted__#{salt}#{encrypted_data}")
     end
 
     ##
@@ -57,13 +56,18 @@ module ConfidentialInfoManager
     # @param [Class] type
     #   @note String/Fixnum/Bignum/Float/Array/Hash
     # @return [Object] decrypted data
-    def decrypt(encrypted_data, type=String)
-      @@decrypter.reset
-
+    def decrypt(encrypted_data, type = String)
       encrypted_data = Base64.strict_decode64(encrypted_data)
+      salt = encrypted_data[8, RANDOM_BYTES]
+
+      encrypted_data = encrypted_data[8 + RANDOM_BYTES, encrypted_data.size]
+
+      decrypter = generate_cipher
+      decrypter.decrypt
+      decrypter.pkcs5_keyivgen(@password, salt, @iterator_cnt)
       decrypted_data = ""
-      decrypted_data << @@decrypter.update(encrypted_data)
-      decrypted_data << @@decrypter.final
+      decrypted_data << decrypter.update(encrypted_data)
+      decrypted_data << decrypter.final
 
       if type == Fixnum || type == Bignum
         decrypted_data = decrypted_data.to_i
@@ -112,38 +116,11 @@ module ConfidentialInfoManager
 private
 
     ##
-    # setting key and iv
-    # @param [String] password
-    # @param [String] salt
-    def set_key_and_iv(password, salt)
-      # Generated from the password and salt the key and IV in accordance with PKCS#5
-      key_iv = OpenSSL::PKCS5.pbkdf2_hmac_sha1(
-        password, salt, ITERATOR_COUNT,
-        @@encrypter.key_len + @@encrypter.iv_len
-      )
-      key = key_iv[0, @@encrypter.key_len]
-      iv = key_iv[@@encrypter.key_len, @@encrypter.iv_len]
-      # Set the key and IV
-      @@encrypter.key = key
-      @@encrypter.iv = iv
-      @@decrypter.key = key
-      @@decrypter.iv = iv
-    end
-
-    ##
-    # generate encrypter
-    # @param [String] mode
-    def generate_encrypter(mode)
-      @@encrypter = OpenSSL::Cipher.new(mode)
-      @@encrypter.encrypt
-    end
-
-    ##
-    # generate decrypter
-    # @param [String] mode
-    def generate_decrypter(mode)
-      @@decrypter = OpenSSL::Cipher.new(mode)
-      @@decrypter.decrypt
+    # generate cipher instance
+    # @return [OpenSSL::Cipher] cipher
+    def generate_cipher
+      cipher = OpenSSL::Cipher.new(@mode)
+      cipher.reset
     end
 
   end
