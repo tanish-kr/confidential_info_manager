@@ -1,4 +1,6 @@
 # ConfidentialInfoManager
+
+[![Join the chat at https://gitter.im/tatsu07/confidential_info_manager](https://badges.gitter.im/tatsu07/confidential_info_manager.svg)](https://gitter.im/tatsu07/confidential_info_manager?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/tatsu07/confidential_info_manager.svg?branch=master)](https://travis-ci.org/tatsu07/confidential_info_manager)
 [![Coverage Status](https://coveralls.io/repos/tatsu07/confidential_info_manager/badge.svg?branch=master&service=github)](https://coveralls.io/github/tatsu07/confidential_info_manager?branch=master)
 
